@@ -14897,8 +14897,8 @@ Source: http://products.nichicon.co.jp/en/pdf/XJA043/e-ud.pdf</description>
 </plain>
 <instances>
 <instance part="MEGA2560PRO1" gate="G$1" x="119.38" y="93.98" smashed="yes" rot="R180">
-<attribute name="VALUE" x="129.54" y="43.18" size="1.27" layer="96" rot="R180"/>
-<attribute name="NAME" x="129.54" y="40.64" size="1.27" layer="95" rot="R180"/>
+<attribute name="VALUE" x="129.54" y="40.64" size="1.27" layer="96" rot="R180"/>
+<attribute name="NAME" x="129.54" y="38.1" size="1.27" layer="95" rot="R180"/>
 </instance>
 <instance part="I2C_1_PIXY2" gate="G$1" x="154.94" y="210.82" smashed="yes" rot="R90">
 <attribute name="NAME" x="149.098" y="205.74" size="1.27" layer="95" rot="R90"/>
@@ -14933,9 +14933,9 @@ Source: http://products.nichicon.co.jp/en/pdf/XJA043/e-ud.pdf</description>
 <instance part="PIN" gate="-8" x="254" y="200.66" smashed="yes" rot="R90">
 <attribute name="NAME" x="254.762" y="203.2" size="1.524" layer="95" rot="R90"/>
 </instance>
-<instance part="PWM_OUTPUT" gate="A" x="223.52" y="38.1" smashed="yes">
-<attribute name="NAME" x="217.17" y="48.895" size="1.778" layer="95"/>
-<attribute name="VALUE" x="217.17" y="25.4" size="1.778" layer="96"/>
+<instance part="PWM_OUTPUT" gate="A" x="226.06" y="66.04" smashed="yes">
+<attribute name="NAME" x="219.71" y="76.835" size="1.778" layer="95"/>
+<attribute name="VALUE" x="219.71" y="53.34" size="1.778" layer="96"/>
 </instance>
 <instance part="RC_IN" gate="A" x="63.5" y="106.68" smashed="yes" rot="R180">
 <attribute name="NAME" x="69.85" y="95.885" size="1.778" layer="95" rot="R180"/>
@@ -15151,64 +15151,52 @@ Source: http://products.nichicon.co.jp/en/pdf/XJA043/e-ud.pdf</description>
 <net name="N$7" class="0">
 <segment>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="D13"/>
-<wire x1="132.08" y1="73.66" x2="203.2" y2="73.66" width="0.1524" layer="91"/>
-<wire x1="203.2" y1="73.66" x2="203.2" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="73.66" x2="223.52" y2="73.66" width="0.1524" layer="91"/>
 <pinref part="PWM_OUTPUT" gate="A" pin="1"/>
-<wire x1="203.2" y1="45.72" x2="220.98" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$8" class="0">
 <segment>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="D11"/>
-<wire x1="132.08" y1="71.12" x2="200.66" y2="71.12" width="0.1524" layer="91"/>
-<wire x1="200.66" y1="71.12" x2="200.66" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="71.12" x2="223.52" y2="71.12" width="0.1524" layer="91"/>
 <pinref part="PWM_OUTPUT" gate="A" pin="2"/>
-<wire x1="200.66" y1="43.18" x2="220.98" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$9" class="0">
 <segment>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="D9"/>
-<wire x1="132.08" y1="68.58" x2="198.12" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="68.58" x2="223.52" y2="68.58" width="0.1524" layer="91"/>
 <pinref part="PWM_OUTPUT" gate="A" pin="3"/>
-<wire x1="198.12" y1="68.58" x2="198.12" y2="40.64" width="0.1524" layer="91"/>
-<wire x1="198.12" y1="40.64" x2="220.98" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
 <segment>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="D7"/>
-<wire x1="132.08" y1="66.04" x2="195.58" y2="66.04" width="0.1524" layer="91"/>
-<wire x1="195.58" y1="66.04" x2="195.58" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="66.04" x2="223.52" y2="66.04" width="0.1524" layer="91"/>
 <pinref part="PWM_OUTPUT" gate="A" pin="4"/>
-<wire x1="195.58" y1="38.1" x2="220.98" y2="38.1" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$11" class="0">
 <segment>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="D5"/>
-<wire x1="132.08" y1="63.5" x2="193.04" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="63.5" x2="223.52" y2="63.5" width="0.1524" layer="91"/>
 <pinref part="PWM_OUTPUT" gate="A" pin="5"/>
-<wire x1="193.04" y1="63.5" x2="193.04" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="193.04" y1="35.56" x2="220.98" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$12" class="0">
 <segment>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="D3"/>
-<wire x1="132.08" y1="60.96" x2="190.5" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="60.96" x2="223.52" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="PWM_OUTPUT" gate="A" pin="6"/>
-<wire x1="190.5" y1="60.96" x2="190.5" y2="33.02" width="0.1524" layer="91"/>
-<wire x1="190.5" y1="33.02" x2="220.98" y2="33.02" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$13" class="0">
 <segment>
 <pinref part="PWM_OUTPUT" gate="A" pin="7"/>
-<wire x1="220.98" y1="30.48" x2="144.78" y2="30.48" width="0.1524" layer="91"/>
-<wire x1="144.78" y1="30.48" x2="144.78" y2="48.26" width="0.1524" layer="91"/>
 <pinref part="MEGA2560PRO1" gate="G$1" pin="GND@1"/>
 <wire x1="144.78" y1="48.26" x2="132.08" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="144.78" y1="48.26" x2="144.78" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="144.78" y1="58.42" x2="223.52" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$14" class="0">
