@@ -65,7 +65,6 @@ void loop() {
 }
 
 //Pixy2 function
-
 void LINE_DETECT() {
   //OUTLINE: pixy_angle , pixy_middle , x0 , x1 , y0 , y1 , LINE_GET 
   Wire.beginTransmission(0x53);
@@ -122,7 +121,7 @@ void LINE_DETECT() {
       } else {
         LINE_GET = 1;
         if(debug){
-          Serial.println(F"----LINE DETECT----");
+          Serial.println(F("----LINE DETECT----"));
           Serial.print(F("Line_middle: "));
           Serial.print(pixy_middle);
           Serial.print(F("  Line_angle: "));
@@ -203,7 +202,7 @@ void CCC_DETECT_COLOR_WAITING() {
       }
 
       if(debug){
-        Serial.println(F"----CCC_DETECT_COLOR_WAITING----");
+        Serial.println(F("----CCC_DETECT_COLOR_WAITING----"));
         Serial.print(F("Detected "));
         Serial.println(pixy.ccc.numBlocks);
         Serial.print(F("X: "));
@@ -253,4 +252,10 @@ void RC_READING(){
     Serial.print(F("RC_5_PWM: "));
     Serial.println(RC_5_PWM);
   }
+}
+
+//DATA SENDING
+void DATA_SEND(){ 
+  radio.write(&send_data, sizeof(send_data));
+  radio.stopListening();
 }
