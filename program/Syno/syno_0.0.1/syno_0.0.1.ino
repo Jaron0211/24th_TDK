@@ -61,7 +61,18 @@ void setup() {
 }
 
 void loop() {
+  DATA_SEND();
+  
+}
 
+//AUTO FUNCTION
+void AUTO(){
+  
+}
+
+//DRONE BASIC FUNCTION
+void TAKE_OFF(){
+  
 }
 
 //Pixy2 function
