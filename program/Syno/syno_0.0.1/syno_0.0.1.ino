@@ -1,21 +1,28 @@
+/*
+ * --WAITADD : NEED TO ADJUST FUNCTION DETIAL
+ * --DEBUG : DEBUG OPTION
+ * --INSETUP : INPUT SETUP TAG
+ * --OUTSETUP : OUTPUT SETUP TAG 
+ * --RFSETUP : nRF24L01 SETUP TAG
+ * --AMCHSE : AUTO/MANUAL MODE CHOOSE TAG
+ * --TAKEOFF : TAKE OFF FUNCTION TAG
+ */
+
 #include <Wire.h>
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "RF24_config.h"
 #include <SPI.h>
 #include <Servo.h>
-#include <Pixy2I2C.h>
 
 #include "global.h"
 #include "INPUT_PIN.h"
 #include "OUT_PIN.h"
-#include "Pixy2_fig.h"
 #include "nRF24L01_fig.h"
 #include "FUNCTION_fig.h"
 
 void setup() {
   
-  pixy.init();
   Wire.begin();
   Serial.begin(2000000);
   
@@ -61,188 +68,119 @@ void setup() {
 }
 
 void loop() {
+  
   DATA_SEND();
+  RC_READING();
+
+  //FUNCTION CHOOSE --AMCHSE
+  if(MODE_1_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_1_PWM + 50 ){
+    MANUAL();
+  }else if (MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50){
+    AUTO();
+  }
   
 }
+
+//MANUAL FUNCTION
+void MANUAL(){
+  
+  CH1.writeMicroseconds(RC_1_PWM);
+  CH2.writeMicroseconds(RC_2_PWM);
+  CH3.writeMicroseconds(RC_3_PWM);
+  CH4.writeMicroseconds(RC_4_PWM);
+  CH5.writeMicroseconds(RC_5_PWM);
+}
+
 
 //AUTO FUNCTION
 void AUTO(){
   
+  if(debug){
+    Serial.print(F("=====AUTO_LOG====="));
+  }
+  
+  //TAKE OFF --TAKEOFF
+  TAKE_OFF_CHECK = 0;
+  while(1){
+    //FOR BREAKING
+    RC_READING();
+    if((MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50) and TAKE_OFF_CHECK == 0){
+      TAKE_OFF();
+    }else{
+      break;
+    }
+  }
+ 
 }
 
 //DRONE BASIC FUNCTION
+
 void TAKE_OFF(){
-  
-}
-
-//Pixy2 function
-void LINE_DETECT() {
-  //OUTLINE: pixy_angle , pixy_middle , x0 , x1 , y0 , y1 , LINE_GET 
-  Wire.beginTransmission(0x53);
-  Wire.write(0xae);
-  Wire.write(0xc1);
-  Wire.write(0x30);
-  Wire.write(0x02);
-  Wire.write(0x00);
-  Wire.write(0x07);
-  Wire.endTransmission();
-  Wire.requestFrom(0x53, 14);
-
-  if (Wire.available()) {
-    uint16_t Head1 = Wire.read();
-    uint16_t Head2 = Wire.read();
-    uint8_t typr = Wire.read();
-    uint8_t payload = Wire.read();
-    uint8_t checksum1 = Wire.read() ;
-    uint8_t checksum2 = Wire.read();
-    if (typr == 49) {
-      int i = 0;
-      while (Wire.available()) {
-
-        int8_t feature = Wire.read();
-        int8_t length = Wire.read();
-        x0 = Wire.read();
-        y0 = Wire.read();
-        x1 = Wire.read();
-        y1 = Wire.read();
-        int8_t data5 = Wire.read();
-        int8_t data6 = Wire.read();
-
-      }
-      pixy_angle = atan((float)(y1 - y0) / (x1 - x0)) * 57.296;
-      if (pixy_angle < 0) {
-        pixy_angle = map(pixy_angle, -90, 0, 0, -90);
-      } else if (pixy_angle > 0) {
-        pixy_angle = map(pixy_angle, 90, 0, 0, 90);
-      }
-      pixy_middle = ((x1 + x0)  - 78) / 2;
-
-      LINE_COUNTER = 0;
-      if (pixy_middle < -100) {
-        pixy_angle = 0;
-        pixy_middle = 0;
-        x0 = 39;
-        x1 = 39;
-        y0 = 26;
-        y1 = 26;
-        LINE_GET = 0;
-        if(debug){
-          Serial.println(F("NO LINE"));
-        }
-      } else {
-        LINE_GET = 1;
-        if(debug){
-          Serial.println(F("----LINE DETECT----"));
-          Serial.print(F("Line_middle: "));
-          Serial.print(pixy_middle);
-          Serial.print(F("  Line_angle: "));
-          Serial.println(pixy_angle);
-        }
-      }
-    }
+  //ARM
+  if(TAKE_OFF_CHECK == 0){
+    timer = millis();
   }
-}
-void COLOR_DETECT() {
-  //OUTLINE: r , g , b
-  pixy.changeProg("video");
-  if (pixy.video.getRGB(pixy.frameWidth / 2, pixy.frameHeight / 2, &r, &g, &b) == 0)
-  {
-    if(debug){
-      Serial.print(F("----COLOR DETECT----"));
-      Serial.print(F("red:"));
-      Serial.print(r);
-      Serial.print(F(" green:"));
-      Serial.print(g);
-      Serial.print(F(" blue:"));
-      Serial.println(b);
-    }
-  } else {
-    r = 0;
-    g = 0;
-    b = 0;
-  }
-}
-void CCC_DETECT_TAKE_OFF_POINT_OLD() {
-  pixy.ccc.getBlocks();
-  if (pixy.ccc.numBlocks) {
+  while(1){
+    //FOR BREAKING
+    RC_READING();
+    if(!(MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50)){
+      break;
+    }    
+    CH1.writeMicroseconds(1400);
+    CH2.writeMicroseconds(1400);
+    CH3.writeMicroseconds(1000);
+    CH4.writeMicroseconds(1790);
+    CH5.writeMicroseconds(1400);
     
-    if(debug){
-      Serial.println("----CCC_DETECT_TAKE_OFF_POINT_OLD----");
-      Serial.print(F("Detected "));
-      Serial.println(pixy.ccc.numBlocks);
+    if(millis() - timer > 6000){
+      break; 
     }
+  }
+  //READY TO TAKE OFF
+  if(TAKE_OFF_CHECK == 0){
+    timer = millis();
+  }
+  while(1){
+    RC_READING();
+    if(!(MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50)){
+      break;
+    }
+
+    CH1.writeMicroseconds(1400);
+    CH2.writeMicroseconds(1400);
+    CH3.writeMicroseconds(1000);
+    CH4.writeMicroseconds(1400);
+    CH5.writeMicroseconds(1400);
     
-    for (int i = 0; i < pixy.ccc.numBlocks; i++) {
-      if (pixy.ccc.blocks[i].m_signature == 7) {
-        CCC_ATTACH_CHECK = 1;
-        pixy_ccc_x = map(pixy.ccc.blocks[i].m_x , 0, 315, -157, 157);
-        pixy_ccc_y = map(pixy.ccc.blocks[i].m_y , 0, 207, -104, 104);
-      }
+    if (millis() - timer > 3000) {
+      break;
     }
-  } else {
-    CCC_ATTACH_CHECK = 0;
-    pixy_ccc_x = 0;
-    pixy_ccc_y = 0;
   }
-}
-void CCC_DETECT_COLOR_WAITING() {
-  pixy.ccc.getBlocks();
-  if (pixy.ccc.numBlocks) {
-
-    for (int i = 0; i < pixy.ccc.numBlocks; i++) {
-      if (pixy.ccc.blocks[i].m_signature == 1) {
-
-        CCC_ATTACH_CHECK = 1;
-        COLOR_READ_CHECK = 0;
-        pixy_ccc_x = map(pixy.ccc.blocks[i].m_x , 0, 315, -158, 158);
-        pixy_ccc_y = map(pixy.ccc.blocks[i].m_y , 0, 207, -104, 104);
-      } else if (pixy.ccc.blocks[i].m_signature == 2) {
-
-        CCC_ATTACH_CHECK = 1;
-        CCC_ATTACH_COLOR = 1;
-        COLOR_READ_CHECK = 1;
-        pixy_ccc_x = map(pixy.ccc.blocks[i].m_x , 0, 315, -158, 158);
-        pixy_ccc_y = map(pixy.ccc.blocks[i].m_y , 0, 207, -104, 104);
-      } else if (pixy.ccc.blocks[i].m_signature == 3) {
-
-        CCC_ATTACH_CHECK = 1;
-        CCC_ATTACH_COLOR = 2;
-        COLOR_READ_CHECK = 1;
-        pixy_ccc_x = map(pixy.ccc.blocks[i].m_x , 0, 315, -158, 158);
-        pixy_ccc_y = map(pixy.ccc.blocks[i].m_y , 0, 207, -104, 104);
-      }
-
-      if(debug){
-        Serial.println(F("----CCC_DETECT_COLOR_WAITING----"));
-        Serial.print(F("Detected "));
-        Serial.println(pixy.ccc.numBlocks);
-        Serial.print(F("X: "));
-        Serial.print(pixy_ccc_x);
-        Serial.print(F("Y: "));
-        Serial.println(pixy_ccc_y);
-      }
+  ///TAKE_OFF --WAITADD
+  if(TAKE_OFF_CHECK == 0){
+    timer = millis();
+  }
+  while(1){
+    //FOR BREAKING
+    RC_READING();
+    if(!(MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50)){
+      break;
+    }    
+    CH1.writeMicroseconds(1400);
+    CH2.writeMicroseconds(1400);
+    CH3.writeMicroseconds(1510);
+    CH4.writeMicroseconds(1400); //NEED ADD TAKE OFF STABLIZE (USE OPENMV H7)
+    CH5.writeMicroseconds(1400);
+    
+    if(millis() - timer > 2500){
+      TAKE_OFF_CHECK = 1;
+      break; 
     }
-  } else {
-    CCC_ATTACH_CHECK = 0;
-    pixy_ccc_x = 0;
-    pixy_ccc_y = 0;
   }
 }
-void CCC_DETECT_COLOR_FINDER() {
-  COLOR_DETECT();
-  if (r > 250 && g < 150 && b < 150) {
-    CCC_ATTACH_CHECK = 1;
-  } else {
-    CCC_ATTACH_CHECK = 0;
-  }
-  if(debug){
-    Serial.println(F("----CCC_DETECT_COLOR_FINDER----"));
-    Serial.println(CCC_ATTACH_CHECK);
-  }
+void THROW(){
 
 }
-
-//RC_INPUT READ
 void RC_READING(){
   RC_1_PWM = pulseIn(RC_1,1);
   RC_2_PWM = pulseIn(RC_2,1);
@@ -264,8 +202,6 @@ void RC_READING(){
     Serial.println(RC_5_PWM);
   }
 }
-
-//DATA SENDING
 void DATA_SEND(){ 
   radio.write(&send_data, sizeof(send_data));
   radio.stopListening();
