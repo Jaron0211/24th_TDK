@@ -27,12 +27,8 @@ void setup() {
   Serial.begin(2000000);
   
   //USING FOR DEBUGGING --DEBUG
-  if(Serial.available()){ 
-    debug = 1;
-  }else{
-    debug = 0;
-  }
-
+  //debug = 1;
+  
   //INPUT SET UP --INSETUP
   pinMode(RC_1,INPUT);
   pinMode(RC_2,INPUT);
@@ -59,7 +55,7 @@ void setup() {
   radio.begin();
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(1);
-  radio.setDataRate(RF24_2MBPS);
+  radio.setDataRate(RF24_2MBPS);//MAX LENGTH IS 0.25MB/S
   radio.setCRCLength(RF24_CRC_8);
   radio.openWritingPipe(pipe[1]);
   radio.setAutoAck(0);

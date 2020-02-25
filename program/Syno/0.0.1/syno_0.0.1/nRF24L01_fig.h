@@ -8,14 +8,14 @@ unsigned int RECEIVER_CHECK = 100;
 
 typedef struct {
 
-  int CH1;
-  int CH2;
-  int CH3;
-  int CH4;
-  int CH5;
-  int CH6;
-  int MODE;
-  int __SAVE__;
+  int RC_INPUT[6];
+  
+  int CH_OUTPUT[5};
+
+  int voltage;
+  int gimbal_angle[2];
+  
+  int OpenMV_status;
 
 } SEND_DATA;
 
