@@ -1,6 +1,6 @@
 # include <Wire.h>
-define BAUD_RATE 19200
-define CHAR_BUF 128
+#define BAUD_RATE 19200
+#define CHAR_BUF 128
 
 void setup() {
   Serial.begin(BAUD_RATE);
