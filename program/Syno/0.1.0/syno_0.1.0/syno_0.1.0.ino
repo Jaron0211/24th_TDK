@@ -13,13 +13,19 @@
 #include "RF24.h"
 #include "RF24_config.h"
 #include <SPI.h>
-#include <Servo.h>
 
 #include "global.h"
 #include "INPUT_PIN.h"
 #include "OUT_PIN.h"
 #include "nRF24L01_fig.h"
 #include "FUNCTION_fig.h"
+#include "PWM.hpp"
+
+PWM CH1(2);
+PWM CH2(3);
+PWM CH3(18);
+PWM CH4(19);
+PWM CH5(20);
 
 void setup() {
   
@@ -30,26 +36,16 @@ void setup() {
   //debug = 1;
   
   //INPUT SET UP --INSETUP
-  pinMode(RC_1,INPUT);
-  pinMode(RC_2,INPUT);
-  pinMode(RC_3,INPUT);
-  pinMode(RC_4,INPUT);
-  pinMode(RC_5,INPUT);
-
+  CH1.begin(true);
+  CH2.begin(true);
+  CH3.begin(true);
+  CH4.begin(true);
+  CH5.begin(true);   
+  
   //RC_RADIO ATTACH --OUTSETUP
-  CH1.attach(ch1);
-  CH2.attach(ch2);
-  CH3.attach(ch3);
-  CH4.attach(ch4);
-  CH5.attach(ch5);
-  CH6.attach(ch6);
-
-  CH1.writeMicroseconds(900);
-  CH2.writeMicroseconds(900);
-  CH3.writeMicroseconds(900);
-  CH4.writeMicroseconds(900);
-  CH5.writeMicroseconds(900);
-  CH6.writeMicroseconds(900);
+  for(int i=0; i<chanel_number; i++){
+    ppm[i]= default_servo_value;
+  }
 
   //nRF24L01 SET UP --RFSETUP
   radio.begin();
@@ -61,6 +57,20 @@ void setup() {
   radio.setAutoAck(0);
   radio.stopListening();
 
+  //ICR
+  pinMode(sigPin, OUTPUT);
+  digitalWrite(sigPin, !onState);  //set the PPM signal pin to the default state (off)
+  
+  cli();
+  TCCR1A = 0; // set entire TCCR1 register to 0
+  TCCR1B = 0;
+  
+  OCR1A = 100;  // compare match register, change this
+  TCCR1B |= (1 << WGM12);  // turn on CTC mode
+  TCCR1B |= (1 << CS11);  // 8 prescaler: 0,5 microseconds at 16mhz
+  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+  sei();
+
 }
 
 void loop() {
@@ -68,6 +78,20 @@ void loop() {
   DATA_SEND();
   RC_READING();
 
+  Serial.print(RC_1_PWM);
+  Serial.print(" ");
+  Serial.print(RC_2_PWM);
+  Serial.print(" ");
+  Serial.print(RC_3_PWM);
+  Serial.print(" ");
+  Serial.print(RC_4_PWM);
+  Serial.print(" ");
+  Serial.print(RC_5_PWM);
+  Serial.print(" ");
+  
+  Serial.println();
+  delay(100);
+  
   //FUNCTION CHOOSE --AMCHSE
   if(MODE_1_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_1_PWM + 50 ){
     MANUAL();
@@ -77,14 +101,21 @@ void loop() {
   
 }
 
+
+
 //MANUAL FUNCTION
 void MANUAL(){
+
+  Serial.println("m");
+
+  RC_READING();
   
-  CH1.writeMicroseconds(RC_1_PWM);
-  CH2.writeMicroseconds(RC_2_PWM);
-  CH3.writeMicroseconds(RC_3_PWM);
-  CH4.writeMicroseconds(RC_4_PWM);
-  CH5.writeMicroseconds(RC_5_PWM);
+  ppm[0] = RC_1_PWM;
+  ppm[1] = RC_2_PWM;
+  ppm[2] = RC_3_PWM;
+  ppm[3] = RC_4_PWM;
+  ppm[4] = 970;
+  
 }
 
 
@@ -122,11 +153,11 @@ void TAKE_OFF(){
     if(!(MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50)){
       break;
     }    
-    CH1.writeMicroseconds(1400);
-    CH2.writeMicroseconds(1400);
-    CH3.writeMicroseconds(1000);
-    CH4.writeMicroseconds(1790);
-    CH5.writeMicroseconds(1400);
+    ppm[0] = 1400 ;
+    ppm[1] = 1400 ;
+    ppm[2] = 1000 ;
+    ppm[3] = 1790 ;
+    ppm[4] = 1400 ;
     
     if(millis() - timer > 6000){
       break; 
@@ -142,11 +173,11 @@ void TAKE_OFF(){
       break;
     }
 
-    CH1.writeMicroseconds(1400);
-    CH2.writeMicroseconds(1400);
-    CH3.writeMicroseconds(1000);
-    CH4.writeMicroseconds(1400);
-    CH5.writeMicroseconds(1400);
+    ppm[0] = 1400;
+    ppm[1] = 1400;
+    ppm[2] = 1000;
+    ppm[3] = 1400;
+    ppm[4] = 1400;
     
     if (millis() - timer > 3000) {
       break;
@@ -162,11 +193,11 @@ void TAKE_OFF(){
     if(!(MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50)){
       break;
     }    
-    CH1.writeMicroseconds(1400);
-    CH2.writeMicroseconds(1400);
-    CH3.writeMicroseconds(1510);
-    CH4.writeMicroseconds(1400); //NEED ADD TAKE OFF STABLIZE (USE OPENMV H7)
-    CH5.writeMicroseconds(1400);
+    ppm[0] = 1400 ;
+    ppm[1] = 1400 ;
+    ppm[2] = 1510 ;
+    ppm[3] = 1400 ; //NEED ADD TAKE OFF STABLIZE (USE OPENMV H7)
+    ppm[4] = 1400 ;
     
     if(millis() - timer > 2500){
       TAKE_OFF_CHECK = 1;
@@ -178,11 +209,11 @@ void THROW(){
 
 }
 void RC_READING(){
-  RC_1_PWM = pulseIn(RC_1,1);
-  RC_2_PWM = pulseIn(RC_2,1);
-  RC_3_PWM = pulseIn(RC_3,1);
-  RC_4_PWM = pulseIn(RC_4,1);
-  RC_5_PWM = pulseIn(RC_5,1);
+  RC_1_PWM = CH1.getValue();
+  RC_2_PWM = CH2.getValue();
+  RC_3_PWM = CH3.getValue();
+  RC_4_PWM = CH4.getValue();
+  RC_5_PWM = CH5.getValue();
 
   if(debug){
     Serial.println(F("=====RC_INPUT====="));
@@ -201,4 +232,35 @@ void RC_READING(){
 void DATA_SEND(){ 
   radio.write(&send_data, sizeof(send_data));
   radio.stopListening();
+}
+
+ISR(TIMER1_COMPA_vect){  //leave this alone
+  static boolean state = true;
+  
+  TCNT1 = 0;
+  
+  if(state) {  //start pulse
+    digitalWrite(sigPin, onState);
+    OCR1A = PPM_PulseLen * 2;
+    state = false;
+  }
+  else{  //end pulse and calculate when to start the next pulse
+    static byte cur_chan_numb;
+    static unsigned int calc_rest;
+  
+    digitalWrite(sigPin, !onState);
+    state = true;
+
+    if(cur_chan_numb >= chanel_number){
+      cur_chan_numb = 0;
+      calc_rest = calc_rest + PPM_PulseLen;// 
+      OCR1A = (PPM_FrLen - calc_rest) * 2;
+      calc_rest = 0;
+    }
+    else{
+      OCR1A = (ppm[cur_chan_numb] - PPM_PulseLen) * 2;
+      calc_rest = calc_rest + ppm[cur_chan_numb];
+      cur_chan_numb++;
+    }     
+  }
 }

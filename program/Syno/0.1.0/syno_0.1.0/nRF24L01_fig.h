@@ -10,7 +10,7 @@ typedef struct {
 
   int RC_INPUT[6];
   
-  int CH_OUTPUT[5};
+  int CH_OUTPUT[5];
 
   int voltage;
   int gimbal_angle[2];
