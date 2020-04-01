@@ -18,7 +18,7 @@ from pyb import UART
 uart = UART(3, 19200)
 
 sensor.reset()
-sensor.set_pixformat(sensor.RGB565) # grayscale is faster
+sensor.set_pixformat(sensor.GRAYSCALE) # grayscale is faster
 sensor.set_framesize(sensor.QQVGA)
 sensor.skip_frames(time = 2000)
 clock = time.clock()
@@ -56,8 +56,8 @@ while(True):
             x = l.line()[0]
             print(l.theta())
 
-    for c in img.find_circles(threshold = 2000, x_margin = 30, y_margin = 30, r_margin = 30,
-                    r_min = 2, r_max = 100, r_step = 2):
+    for c in img.find_circles(threshold = 2500, x_margin = 10, y_margin = 10, r_margin = 60,
+                    r_min = 2, r_max = 100, r_step = 3):
                 img.draw_circle(c.x(), c.y(), c.r(), color = (255, 0, 0))
                 print(c)
 
