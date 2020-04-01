@@ -35,7 +35,7 @@ void setup() {
   //USING FOR DEBUGGING --DEBUG
   //debug = 1;
   if(debug){
-    Serial.begin(2000000);
+    Serial.begin(19200);
   }
   
   //INPUT SET UP --INSETUP
@@ -79,6 +79,14 @@ void setup() {
 }
 
 void loop() {
+
+  if(Serial.available()){
+    delay(10);
+    while(Serial.available()){ 
+      Serial.print(char(Serial.read()));
+    }
+    Serial.println();
+  }
   
   DATA_SEND();
   RC_READING();
@@ -112,7 +120,7 @@ void MANUAL(){
 void AUTO(){
   
   if(debug){
-    Serial.print(F("=====AUTO_LOG====="));
+    Serial.println(F("=====AUTO_LOG====="));
   }
   
   //TAKE OFF --TAKEOFF
