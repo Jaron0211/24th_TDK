@@ -3,7 +3,7 @@
  */
 
 
-boolean debug = 0;
+boolean debug = 1;
 
 int MODE_1_PWM = 970;
-int MODE_2_PWM = 1600;
+int MODE_2_PWM = 2050;

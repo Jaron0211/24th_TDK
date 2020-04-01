@@ -6,6 +6,8 @@
  * --RFSETUP : nRF24L01 SETUP TAG
  * --AMCHSE : AUTO/MANUAL MODE CHOOSE TAG
  * --TAKEOFF : TAKE OFF FUNCTION TAG
+ * --ISRSETUP : ISR SETUP TAG
+ * --ISRPRO : ISR PROGRAM TAG
  */
 
 #include <Wire.h>
@@ -30,10 +32,11 @@ PWM CH5(20);
 void setup() {
   
   Wire.begin();
-  Serial.begin(2000000);
-  
   //USING FOR DEBUGGING --DEBUG
   //debug = 1;
+  if(debug){
+    Serial.begin(2000000);
+  }
   
   //INPUT SET UP --INSETUP
   CH1.begin(true);
@@ -47,6 +50,8 @@ void setup() {
     ppm[i]= default_servo_value;
   }
 
+  ppm[2] = 1000;
+
   //nRF24L01 SET UP --RFSETUP
   radio.begin();
   radio.setPALevel(RF24_PA_MAX);
@@ -57,7 +62,7 @@ void setup() {
   radio.setAutoAck(0);
   radio.stopListening();
 
-  //ICR
+  //ISR SETUP --ISRSETUP
   pinMode(sigPin, OUTPUT);
   digitalWrite(sigPin, !onState);  //set the PPM signal pin to the default state (off)
   
@@ -78,20 +83,6 @@ void loop() {
   DATA_SEND();
   RC_READING();
 
-  Serial.print(RC_1_PWM);
-  Serial.print(" ");
-  Serial.print(RC_2_PWM);
-  Serial.print(" ");
-  Serial.print(RC_3_PWM);
-  Serial.print(" ");
-  Serial.print(RC_4_PWM);
-  Serial.print(" ");
-  Serial.print(RC_5_PWM);
-  Serial.print(" ");
-  
-  Serial.println();
-  delay(100);
-  
   //FUNCTION CHOOSE --AMCHSE
   if(MODE_1_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_1_PWM + 50 ){
     MANUAL();
@@ -105,8 +96,6 @@ void loop() {
 
 //MANUAL FUNCTION
 void MANUAL(){
-
-  Serial.println("m");
 
   RC_READING();
   
@@ -140,8 +129,8 @@ void AUTO(){
  
 }
 
-//DRONE BASIC FUNCTION
 
+//DRONE BASIC FUNCTION
 void TAKE_OFF(){
   //ARM
   if(TAKE_OFF_CHECK == 0){
@@ -209,23 +198,24 @@ void THROW(){
 
 }
 void RC_READING(){
+  
   RC_1_PWM = CH1.getValue();
   RC_2_PWM = CH2.getValue();
   RC_3_PWM = CH3.getValue();
   RC_4_PWM = CH4.getValue();
   RC_5_PWM = CH5.getValue();
 
-  if(debug){
-    Serial.println(F("=====RC_INPUT====="));
-    Serial.print(F("RC_1_PWM: "));
-    Serial.println(RC_1_PWM);
-    Serial.print(F("RC_2_PWM: "));
-    Serial.println(RC_2_PWM);
-    Serial.print(F("RC_3_PWM: "));
-    Serial.println(RC_3_PWM);
-    Serial.print(F("RC_4_PWM: "));
-    Serial.println(RC_4_PWM);
-    Serial.print(F("RC_5_PWM: "));
+
+  if(0/*debug*/){
+    //Serial.println(F("=====RC_INPUT====="));
+    Serial.print(RC_1_PWM);
+    Serial.print(F(" "));
+    Serial.print(RC_2_PWM);
+    Serial.print(F(" "));
+    Serial.print(RC_3_PWM);
+    Serial.print(F(" "));
+    Serial.print(RC_4_PWM);
+    Serial.print(F(" "));
     Serial.println(RC_5_PWM);
   }
 }
@@ -234,6 +224,8 @@ void DATA_SEND(){
   radio.stopListening();
 }
 
+
+// ISR PROGRAM --ISRPRO
 ISR(TIMER1_COMPA_vect){  //leave this alone
   static boolean state = true;
   
