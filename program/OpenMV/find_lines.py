@@ -20,49 +20,42 @@ uart = UART(3, 19200)
 sensor.reset()
 sensor.set_pixformat(sensor.GRAYSCALE) # grayscale is faster
 sensor.set_framesize(sensor.QQVGA)
+
+sensor.set_contrast(+2)
+sensor.set_brightness(+3)
+sensor.set_auto_gain(True)
+
 sensor.skip_frames(time = 2000)
 clock = time.clock()
-
-# All line objects have a `theta()` method to get their rotation angle in degrees.
-# You can filter lines based on their rotation angle.
 
 min_degree = 0
 max_degree = 179
 
-# All lines also have `x1()`, `y1()`, `x2()`, and `y2()` methods to get their end-points
-# and a `line()` method to get all the above as one 4 value tuple for `draw_line()`.
+
 
 while(True):
     clock.tick()
+
     img = sensor.snapshot()
+
+    line_img = sensor.get_fb()
+    cir_img = sensor.get_fb()
+
+    cir_img.gaussian(2)
+    cir_img.binary([(40,100)])
+
     if enable_lens_corr: img.lens_corr(1.8) # for 2.8mm lens...
 
-    # `threshold` controls how many lines in the image are found. Only lines with
-    # edge difference magnitude sums greater than `threshold` are detected...
-
-    # More about `threshold` - each pixel in the image contributes a magnitude value
-    # to a line. The sum of all contributions is the magintude for that line. Then
-    # when lines are merged their magnitudes are added togheter. Note that `threshold`
-    # filters out lines with low magnitudes before merging. To see the magnitude of
-    # un-merged lines set `theta_margin` and `rho_margin` to 0...
-
-    # `theta_margin` and `rho_margin` control merging similar lines. If two lines
-    # theta and rho value differences are less than the margins then they are merged.
+    for c in cir_img.find_circles(threshold = 4000, x_margin = 10, y_margin = 10, r_margin = 60,
+                    r_min = 2, r_max = 20, r_step = 4):
+                img.draw_circle(c.x(), c.y(), c.r(), color = (255, 0, 0))
+                print(c)
 
 
-    for l in img.find_lines(threshold = 1500, theta_margin = 30, rho_margin = 50):
+    for l in line_img.find_lines(threshold = 1200, theta_margin = 30, rho_margin = 50):
         if (min_degree <= l.theta()) and (l.theta() <= max_degree):
             img.draw_line(l.line(), color = (255, 0, 0))
             x = l.line()[0]
             print(l.theta())
+        print("FPS %f" % clock.fps())
 
-    for c in img.find_circles(threshold = 2500, x_margin = 10, y_margin = 10, r_margin = 60,
-                    r_min = 2, r_max = 100, r_step = 3):
-                img.draw_circle(c.x(), c.y(), c.r(), color = (255, 0, 0))
-                print(c)
-
-    print("FPS %f" % clock.fps())
-
-# About negative rho values:
-#
-# A [theta+0:-rho] tuple is the same as [theta+180:+rho].

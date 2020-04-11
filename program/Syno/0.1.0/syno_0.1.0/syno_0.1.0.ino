@@ -11,10 +11,10 @@
  */
 
 #include <Wire.h>
+#include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "RF24_config.h"
-#include <SPI.h>
 
 #include "global.h"
 #include "INPUT_PIN.h"
@@ -32,6 +32,7 @@ PWM CH5(20);
 void setup() {
   
   Wire.begin();
+  
   //USING FOR DEBUGGING --DEBUG
   //debug = 1;
   if(debug){
@@ -52,15 +53,24 @@ void setup() {
 
   ppm[2] = 1000;
 
+  
+  //PINMODE
+  pinMode(A0,INPUT);
+
+  //MODE_CODE
+  MODE_CODE = 0; //SHOW AS NOT SETUP
+
   //nRF24L01 SET UP --RFSETUP
   radio.begin();
   radio.setPALevel(RF24_PA_MAX);
   radio.setChannel(1);
-  radio.setDataRate(RF24_2MBPS);//MAX LENGTH IS 0.25MB/S
+  radio.setDataRate(RF24_2MBPS);  //MAX LENGTH IS 0.25MB/S
   radio.setCRCLength(RF24_CRC_8);
-  radio.openWritingPipe(pipe[1]);
+  radio.openWritingPipe(pipe[0]);
   radio.setAutoAck(0);
   radio.stopListening();
+
+  RF24_DUTY_TIMER = millis();
 
   //ISR SETUP --ISRSETUP
   pinMode(sigPin, OUTPUT);
@@ -78,10 +88,14 @@ void setup() {
 
 }
 
+void loop_(){
+  DATA_SEND();
+}
+
+
 void loop() {
 
   if(Serial.available()){
-    delay(10);
     while(Serial.available()){ 
       Serial.print(char(Serial.read()));
     }
@@ -93,9 +107,13 @@ void loop() {
 
   //FUNCTION CHOOSE --AMCHSE
   if(MODE_1_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_1_PWM + 50 ){
+    MODE_CODE = 1;
     MANUAL();
   }else if (MODE_2_PWM - 50 < RC_5_PWM and RC_5_PWM < MODE_2_PWM + 50){
+    MODE_CODE = 2;
     AUTO();
+  }else{
+    MODE_CODE = 7;
   }
   
 }
@@ -155,7 +173,7 @@ void TAKE_OFF(){
     ppm[2] = 1000 ;
     ppm[3] = 1790 ;
     ppm[4] = 1400 ;
-    
+    DATA_SEND();      
     if(millis() - timer > 6000){
       break; 
     }
@@ -175,7 +193,7 @@ void TAKE_OFF(){
     ppm[2] = 1000;
     ppm[3] = 1400;
     ppm[4] = 1400;
-    
+    DATA_SEND();    
     if (millis() - timer > 3000) {
       break;
     }
@@ -195,7 +213,7 @@ void TAKE_OFF(){
     ppm[2] = 1510 ;
     ppm[3] = 1400 ; //NEED ADD TAKE OFF STABLIZE (USE OPENMV H7)
     ppm[4] = 1400 ;
-    
+    DATA_SEND();    
     if(millis() - timer > 2500){
       TAKE_OFF_CHECK = 1;
       break; 
@@ -203,7 +221,7 @@ void TAKE_OFF(){
   }
 }
 void THROW(){
-
+  
 }
 void RC_READING(){
   
@@ -214,7 +232,7 @@ void RC_READING(){
   RC_5_PWM = CH5.getValue();
 
 
-  if(0/*debug*/){
+  if(1/*debug*/){
     //Serial.println(F("=====RC_INPUT====="));
     Serial.print(RC_1_PWM);
     Serial.print(F(" "));
@@ -224,12 +242,34 @@ void RC_READING(){
     Serial.print(F(" "));
     Serial.print(RC_4_PWM);
     Serial.print(F(" "));
-    Serial.println(RC_5_PWM);
+    Serial.print(RC_5_PWM);
+    Serial.println();
   }
 }
-void DATA_SEND(){ 
-  radio.write(&send_data, sizeof(send_data));
-  radio.stopListening();
+void DATA_SEND(){
+
+  if( millis() - RF24_DUTY_TIMER > RF24_DUTY_TIME ){
+    
+    SEND_DATA.RC_INPUT[0]   =  RC_1_PWM ;
+    SEND_DATA.RC_INPUT[1]   =  RC_2_PWM ;
+    SEND_DATA.RC_INPUT[2]   =  RC_3_PWM ;
+    SEND_DATA.RC_INPUT[3]   =  RC_4_PWM ;
+    SEND_DATA.RC_INPUT[4]   =  RC_5_PWM ;
+    SEND_DATA.CH_OUTPUT[0]  =  ppm[0];
+    SEND_DATA.CH_OUTPUT[1]  =  ppm[1];
+    SEND_DATA.CH_OUTPUT[2]  =  ppm[2];
+    SEND_DATA.CH_OUTPUT[3]  =  ppm[3]; 
+    SEND_DATA.VOLTAGE       = analogRead(A0);
+    SEND_DATA.OPENMV_STATUS = 1101;
+    SEND_DATA.MODE          = MODE_CODE;
+    SEND_DATA.STATUS_CODE   = LEVEL_CODE ;
+
+    radio.write(&SEND_DATA, sizeof(SEND_DATA));
+
+    RF24_DUTY_TIMER = millis();
+  
+  }
+  
 }
 
 
