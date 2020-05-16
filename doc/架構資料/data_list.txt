@@ -1,6 +1,0 @@
-DATA List:
-6 channel input
-5 channel output
-battery voltage
-gimbal angle
-OpenMV status
